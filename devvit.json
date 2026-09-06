@@ -5,30 +5,38 @@
     "dir": "dist/server",
     "entry": "index.cjs"
   },
-  "menu": {
-    "items": [
-      {
-        "label": "Mop comments",
-        "description": "Remove this comment and all child comments. This might take a few seconds to run.",
-        "location": "comment",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/mop-comment"
-      },
-      {
-        "label": "Mop post comments",
-        "description": "Remove all comments of this post. This might take a few seconds to run.",
-        "location": "post",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/mop-post"
-      }
-    ]
+  "marketingAssets": {
+    "icon": "assets/icon.png"
   },
-    "marketingAssets": {
-    "icon": "assets/Escudo-Lanus-original.png"
+    "menu": {
+      "items": [
+    {
+      "label": "Mop comments",
+      "description": "Remove this comment and all child comments. This might take a few seconds to run.",
+      "location": "comment",
+      "forUserType": "moderator",
+      "endpoint": "/internal/menu/mop-comment"
+    },
+    {
+      "label": "Mop post comments",
+      "description": "Remove all comments of this post. This might take a few seconds to run.",
+      "location": "post",
+      "forUserType": "moderator",
+      "endpoint": "/internal/menu/mop-post"
+    },
+    {
+      "label": "Configurar Phrases Bot",
+      "description": "Elegí tu propio patrón y tus propias frases de respuesta.",
+      "location": "subreddit",
+      "forUserType": "moderator",
+      "endpoint": "/internal/menu/configure-phrases-bot"
+    }
+  ]
   },
   "forms": {
     "mopComment": "/internal/form/mop-comment-submit",
-    "mopPost": "/internal/form/mop-post-submit"
+    "mopPost": "/internal/form/mop-post-submit",
+    "configurePhrasesBot": "/internal/form/configure-phrases-bot-submit"
   },
   "triggers": {
     "onAppInstall": "/internal/triggers/on-app-install",

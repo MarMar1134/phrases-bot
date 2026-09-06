@@ -1,60 +1,63 @@
-# Laucha Acosta Bot
+# Phrases Bot
 
-Aplicacion de Reddit construida con Devvit que responde automaticamente a
-comentarios y publicaciones cuando el texto contiene una mencion de Laucha
-Acosta. La respuesta se elige aleatoriamente de una lista de frases y cada
-comentario o publicacion se procesa como maximo una vez.
+A Reddit app that automatically replies to comments and posts when it finds
+one of the configured phrases. It is designed so subreddit moderators can
+adapt the bot to each community without changing the code.
 
-## Como funciona
+## Moderator guide
 
-La aplicacion registra dos triggers en `devvit.json`:
+### Configure phrases from Reddit
 
-- `onCommentSubmit`: se ejecuta cuando se publica un comentario.
-- `onPostSubmit`: se ejecuta cuando se publica una publicacion.
+Configuration is done from the subreddit moderation menu, just like any other
+app:
 
-En ambos casos el flujo es el siguiente:
+1. Go to the subreddit where the app is installed.
+2. Open the subreddit moderation menu.
+3. Find **Config Phrases Bot**.
+4. In **Words and phrases that triggers the bot**, enter the phrases that
+   should activate the bot, one per line.
+5. In **Phrases that will comment the bot**, enter the possible responses,
+   also one per line.
+6. Save the changes by clicking **Save**.
 
-1. Devvit envia el evento al endpoint correspondiente de
-   `src/routes/triggers.ts`.
-2. La aplicacion obtiene el ID y el texto del comentario o el titulo de la
-   publicacion.
-3. Comprueba en Redis si ese ID ya fue respondido.
-4. Evalua el texto con este regex:
+The configuration is saved separately for each subreddit. Changes made in one
+subreddit do not affect any other subreddit.
 
-   ```regex
-   /\b(el\s+laucha|lautaro\s+acosta|laucha\s+acosta|al\s+laucha)\b/i
-   ```
+You do not need to write regular expressions or use any special syntax: enter
+the phrases exactly as you want the bot to recognize them. Matching is
+case-insensitive and allows multiple spaces between words.
 
-5. Si hay coincidencia, selecciona una frase al azar y la publica como
-   respuesta.
-6. Guarda el ID en Redis con la clave
-   `laucha:answered:<id>` para evitar respuestas duplicadas.
+For example, if you add `good evening!`, the bot can detect:
 
-Si el texto no coincide, la aplicacion no publica ninguna respuesta. Los
-errores de lectura del evento, de Redis o de Reddit se registran en los logs
-de la aplicacion.
+- `Good evening!`
+- `GOOD    EVENING!`
 
-## Que detecta el regex
+Each response must be entered on a separate line. When the bot detects a
+matching phrase, it randomly selects one response from the list. Responses are
+posted exactly as written.
 
-El modificador `i` hace que la busqueda no distinga mayusculas de minusculas.
-Los limites `\b` evitan que la coincidencia forme parte de otra palabra y
-`\s+` permite uno o mas espacios entre los terminos.
+At least one trigger phrase and one response phrase must be provided. If either
+field is empty, the app will not save the configuration and will display a
+warning.
 
-Por ejemplo, se detectan:
+### What content the bot checks
 
-- `el Laucha`
-- `EL LAUCHA`
-- `Lautaro Acosta`
-- `laucha    acosta`
-- `Al Laucha`
+- **Comments:** the comment text.
+- **Posts:** the post title and content.
 
-No se detectan menciones incompletas como `Lautaro` o `Acosta` por separado.
-Actualmente el regex se aplica al cuerpo de los comentarios y al titulo de las
-publicaciones; no se analiza el cuerpo de una publicacion.
+When it finds a match, the bot replies to that comment or post only once. If it
+does not find any configured phrase, it does not post a reply.
 
-## Frases disponibles
+### Default configuration
 
-Cuando hay una coincidencia, la aplicacion elige una de estas frases:
+If you have not customized the bot yet, it uses these trigger phrases:
+
+- `el laucha`
+- `lautaro acosta`
+- `laucha acosta`
+- `al laucha`
+
+The default responses are:
 
 1. `es todo lo que yo no soy`
 2. `Madurar es alcanzar un equilibrio, y en ese camino estoy, aprendiendo, escuchando a los que saben`
@@ -65,61 +68,61 @@ Cuando hay una coincidencia, la aplicacion elige una de estas frases:
 7. `No hay que confundirse y creer que todos somos millonarios`
 8. `La gambeta me salvó la vida, y hacer terapia, la carrera`
 
-Para agregar, quitar o modificar respuestas, editar el arreglo `phrases` en
-[`src/routes/triggers.ts`](src/routes/triggers.ts). La eleccion es aleatoria y
-todas las frases tienen la misma probabilidad.
+When you save a custom configuration, the new phrases replace the defaults for
+that subreddit.
 
-## Requisitos
+## Installation and development
 
-- Node.js `24` o superior.
-- Una cuenta de Reddit con acceso a Devvit.
-- Un subreddit de desarrollo para probar la aplicacion.
-- Permisos de Reddit y Redis, declarados en `devvit.json`.
+This section is for the person responsible for installing or updating the app.
+Moderators who only need to customize phrases do not need to run these
+commands.
 
-## Instalacion y desarrollo local
+### Requirements
 
-Desde la carpeta [`laucha-bot`](.):
+- Node.js `24` or newer.
+- A Reddit account with access to Devvit.
+- A development subreddit for testing the app.
+
+From the [`laucha-bot`](.) directory:
 
 ```bash
 npm install
 npm run login
 ```
 
-Configurar el subreddit de prueba en `devvit.json`:
+To configure the development subreddit, set its name in `devvit.json`:
 
 ```json
 {
   "dev": {
-    "subreddit": "nombre_del_subreddit"
+    "subreddit": "subreddit_name"
   }
 }
 ```
 
-Luego iniciar el playtest:
+Then start the playtest:
 
 ```bash
 npm run dev
 ```
 
-Con el playtest activo, publicar un comentario o una publicacion cuyo texto o
-titulo contenga una de las expresiones detectadas. La respuesta y los errores
-se pueden revisar en los logs de Devvit.
+With the playtest active, publish a comment or post containing one of the
+configured phrases and check the response on Reddit.
 
-## Comandos disponibles
+## Available commands
 
-| Comando | Uso |
+| Command | Purpose |
 | --- | --- |
-| `npm run dev` | Inicia el playtest de Devvit. |
-| `npm run build` | Compila el servidor y los recursos con Vite. |
-| `npm run test:types` | Ejecuta el chequeo de tipos de TypeScript. |
-| `npm run test:unit` | Ejecuta los tests unitarios existentes. |
-| `npm run lint` | Ejecuta ESLint sobre el codigo fuente. |
-| `npm run deploy` | Verifica tipos, ejecuta ESLint y sube la app a Devvit. |
-| `npm run launch` | Despliega y publica la app para el proceso de revision. |
-| `npm run login` | Inicia sesion en la CLI de Devvit. |
-| `npm run prettier` | Formatea los archivos del proyecto. |
+| `npm run dev` | Starts the Devvit playtest. |
+| `npm run build` | Builds the app. |
+| `npm run test:types` | Runs the TypeScript type check. |
+| `npm run test:unit` | Runs the existing unit tests. |
+| `npm run lint` | Runs ESLint on the source code. |
+| `npm run deploy` | Validates and uploads the app to Devvit. |
+| `npm run launch` | Deploys and publishes the app for review. |
+| `npm run login` | Signs in to the Devvit CLI. |
 
-Antes de desplegar, se recomienda ejecutar:
+Before deploying, it is recommended to run:
 
 ```bash
 npm run test:types
@@ -127,61 +130,13 @@ npm run lint
 npm run build
 ```
 
-## Estructura relevante
+## How it works
 
-```text
-src/
-├── index.ts              # Registra las rutas HTTP de la aplicacion
-├── routes/
-│   └── triggers.ts       # Regex, frases, deduplicacion y respuestas
-└── assets/               # Recursos graficos de la aplicacion
+The app receives events for new comments and posts, checks the phrases
+configured for the subreddit, and posts a reply when appropriate. It records
+each item that has already received a reply to prevent duplicate responses if
+Reddit sends the same event more than once.
 
-devvit.json               # Triggers, permisos y subreddit de desarrollo
-```
-
-## Personalizacion
-
-### Cambiar las frases
-
-Editar `phrases` en `src/routes/triggers.ts`. Las frases deben ser strings y
-se publican exactamente como estan escritas.
-
-### Cambiar las menciones detectadas
-
-Editar `matchingCases` en el mismo archivo. Si se cambia la expresion regular,
-tener en cuenta que:
-
-- `/i` mantiene la busqueda sin distinguir mayusculas.
-- `\b` representa un limite de palabra.
-- `\s+` permite espacios variables.
-- Los parentesis separan alternativas con `|`.
-
-### Cambiar el comportamiento de publicaciones
-
-El trigger de publicaciones actualmente evalua solo `post.title`. Para
-responder tambien segun el contenido de la publicacion habria que leer el
-campo correspondiente del evento y combinarlo con el titulo antes de aplicar
-`matchingCases`.
-
-## Deduplicacion y Redis
-
-La clave `laucha:answered:<id>` se guarda en Redis luego de publicar la
-respuesta. Mientras esa clave exista, el mismo ID no vuelve a procesarse. Esto
-evita respuestas repetidas si Reddit reenvia un evento o si el endpoint recibe
-el mismo evento mas de una vez.
-
-La deduplicacion es independiente para cada comentario y publicacion porque
-utiliza su ID como parte de la clave. No se debe eliminar una clave durante una
-prueba si se quiere conservar la garantia de una sola respuesta para ese
-contenido.
-
-## Despliegue
-
-1. Probar la aplicacion en el subreddit configurado en `devvit.json`.
-2. Confirmar que los triggers esten habilitados y que la cuenta tenga acceso.
-3. Ejecutar `npm run deploy` para compilar, validar y subir la version.
-4. Ejecutar `npm run launch` solo cuando la version este lista para publicar.
-
-La aplicacion necesita los permisos `reddit` y `redis` declarados en
-`devvit.json`. Si se cambia el nombre del subreddit o la configuracion de
-Devvit, volver a desplegar la aplicacion.
+The app requires the `reddit` and `redis` permissions declared in
+`devvit.json`. If the subreddit or Devvit configuration changes, the app must
+be deployed again.
