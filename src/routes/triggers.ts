@@ -45,8 +45,6 @@ triggers.post('/comment-submit', async (c) => {
   const config = await getBotConfig(context.subredditId);
   const regex = buildRegexFromPhrases(config.triggerPhrases);
 
-   //console.log('payload comment-submit:', JSON.stringify(input));
-
   //Comment info
   const commentId: string | undefined = input.comment?.id ?? input.commentId;
   const commentBody: string | undefined = input.comment?.body;
@@ -55,9 +53,13 @@ triggers.post('/comment-submit', async (c) => {
   if (await alreadyAnswered(commentId)) return c.json<TriggerResponse>({ status: 'success' }, 200);
 
   if (regex && commentBody && regex.test(commentBody)) {
+    //Pick-up a random phrase
     const phrase = getRandomPhrase(config.responsePhrases);
+
     await reddit.submitComment({ id: commentId as `t1_${string}`, text: phrase });
     await markAnswered(commentId);
+
+    //used on debug
     console.log(`Respondido a comentario ${commentId} con: "${phrase.slice(0, 50)}..."`);
   }
 
@@ -77,13 +79,20 @@ triggers.post('/post-submit', async (c) => {
   const postTitle: string | undefined = input.post?.title;
   const postContent: string | undefined = input.post?.body;
 
-  if (!postId || !postTitle || !postContent) return c.json<TriggerResponse>({ status: 'success' }, 200);
-  if (await alreadyAnswered(postId)) return c.json<TriggerResponse>({ status: 'success' }, 200);
+  if (!postId || !postTitle || !postContent) 
+    return c.json<TriggerResponse>({ status: 'success' }, 200);
+
+  if (await alreadyAnswered(postId)) 
+    return c.json<TriggerResponse>({ status: 'success' }, 200);
 
   if (regex && ( postTitle && regex.test(postTitle) || postContent && regex.test(postContent))) {
+    //pick-up a random phrase
     const phrase = getRandomPhrase(config.responsePhrases);
+
     await reddit.submitComment({ id: postId as `t3_${string}`, text: phrase });
     await markAnswered(postId);
+
+    //Used on debug
     console.log(`Respondido al post ${postId} con: "${phrase.slice(0, 50)}..."`);
   }
 

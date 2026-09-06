@@ -1,5 +1,4 @@
 {
-  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
   "name": "laucha-bot",
   "server": {
     "dir": "dist/server",
@@ -25,8 +24,8 @@
       "endpoint": "/internal/menu/mop-post"
     },
     {
-      "label": "Configurar Phrases Bot",
-      "description": "Elegí tu propio patrón y tus propias frases de respuesta.",
+      "label": "Configure Phrases Bot",
+      "description": "Select your own 'trigger phrases' and 'answer phrases' for this subreddit.",
       "location": "subreddit",
       "forUserType": "moderator",
       "endpoint": "/internal/menu/configure-phrases-bot"
